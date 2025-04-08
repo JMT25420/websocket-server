@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrono Arrivée Lancée</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="left-column">
+            <h2>CATEGORIES</h2>
+            <table id="compteur-table">
+                <!-- Les données de la table COMPTEUR seront insérées ici via JavaScript -->
+            </table>
+        </div>
+        <div class="right-column">
+            <h2>CHRONOS</h2>
+            <table id="chrono-table">
+                <!-- Les données de la table CHRONO seront insérées ici via JavaScript -->
+            </table>
+        </div>
+    </div>
+    
+    <!-- Affichage du délai avant la prochaine actualisation -->
+    <div id="statusMessage">Prochaine actualisation dans : <span id="timer">5</span> secondes.</div>
+
+    <script>
+        // Fonction pour récupérer les données depuis get_data.php
+        function fetchData() {
+            fetch("https://chrono.alwaysdata.net/get_data.php")
+                .then(response => response.json())
+                .then(data => {
+                    // Mettre à jour la table des catégories
+                    const compteurTable = document.getElementById("compteur-table");
+                    compteurTable.innerHTML = ''; // Réinitialiser la table
+                    data.compteur.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `<td>${row.category_name}</td><td>${row.value}</td>`;
+                        compteurTable.appendChild(tr);
+                    });
+
+                    // Mettre à jour la table des chronos
+                    const chronoTable = document.getElementById("chrono-table");
+                    chronoTable.innerHTML = ''; // Réinitialiser la table
+                    data.chronos.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `<td>${row.time}</td><td>${row.other_data}</td>`;
+                        chronoTable.appendChild(tr);
+                    });
+
+                    // Réactualiser le timer
+                    document.getElementById('timer').textContent = "5"; // Reset timer à 5 secondes
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la récupération des données :", error);
+                });
+        }
+
+        // Fonction pour gérer le timer et réactualiser les données toutes les 5 secondes
+        function startRefreshTimer() {
+            let timer = 5;
+            const timerElement = document.getElementById('timer');
+            const interval = setInterval(() => {
+                timer--;
+                timerElement.textContent = timer;
+                if (timer <= 0) {
+                    fetchData();  // Appeler la fonction pour récupérer les données
+                    timer = 5;  // Reset du timer
+                }
+            }, 1000);
+        }
+
+        // Lancer le premier appel pour charger les données dès que la page est chargée
+        window.onload = () => {
+            fetchData(); // Charger les données immédiatement
+            startRefreshTimer(); // Démarrer le timer de réactualisation
+        };
+    </script>
+</body>
+</html>
