@@ -1,24 +1,24 @@
+const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Créer un serveur HTTP
-const server = http.createServer((req, res) => {
-  res.writeHead(200);
-  res.end("Serveur WebSocket actif");
+// Simple route pour tester si le serveur est en ligne
+app.get('/', (req, res) => {
+  res.send('WebSocket server is running ✅');
 });
 
-// Attacher le WebSocket au serveur HTTP
+const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (socket) => {
   console.log('Client connecté');
 
-  ws.on('message', (message) => {
+  socket.on('message', (message) => {
     console.log('Reçu :', message);
 
-    // Diffuser le message à tous les clients
     wss.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(`Message reçu : ${message}`);
@@ -26,12 +26,11 @@ wss.on('connection', (ws) => {
     });
   });
 
-  ws.on('close', () => {
+  socket.on('close', () => {
     console.log('Client déconnecté');
   });
 });
 
-// Démarrer le serveur HTTP sur le port attendu par Render
 server.listen(PORT, () => {
-  console.log(`Serveur WebSocket écoutant sur le port ${PORT}`);
+  console.log(`Serveur WebSocket & HTTP en écoute sur le port ${PORT}`);
 });
